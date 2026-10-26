@@ -5,7 +5,7 @@ A small web app for a UK utility's day-ahead power buying team. It answers two q
 1. **What is the latest wind forecast I can actually use when I make tomorrow's purchase decision?**
 2. **How accurate has that forecast been, in MW, so I can allow for the error?**
 
-**Live app:** _<add Vercel/Heroku link here>_
+**Live app:** https://kiluam.onrender.com/
 
 > **AI disclosure:** this project was built with the help of Claude for template and ChatGPT for debugging and code. I reviewed, ran and tested the code.
 
