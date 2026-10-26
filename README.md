@@ -7,7 +7,7 @@ A small web app for a UK utility's day-ahead power buying team. It answers two q
 
 **Live app:** _<add Vercel/Heroku link here>_
 
-> **AI disclosure:** this project was built with the help of Claude (Anthropic) for design, code and documentation. I reviewed, ran and tested the code.
+> **AI disclosure:** this project was built with the help of Claude for template and ChatGPT for debugging and code. I reviewed, ran and tested the code.
 
 ## How to start
 
@@ -50,18 +50,17 @@ cd frontend && npm install && npm run dev      # http://localhost:5173 (proxies 
 | `api/index.py` | 1-line Vercel entrypoint that exposes the FastAPI app. |
 | `Dockerfile` | Multi-stage: build React, then run Python serving everything. |
 | `vercel.json` | Vercel build + routing config. |
-| `VIDEO_SCRIPT.md` | Script for the 2-part demo video. |
 
 ## API
 
 - `GET /api/config`: delivery days available and default decision hour.
-- `GET /api/forecast?day=YYYY-MM-DD&cutoff_hour=9`: 48 half-hourly points (forecast, actual, error band) plus a summary.
+- `GET /api/forecast?day=YYYY-MM-DD&cutoff_hour=9`: 24 half-hourly points (forecast, actual, error band) plus a summary.
 - `GET /api/accuracy?cutoff_hour=9`: overall and per-day MAE, RMSE, bias, relative MAE, P5/P95 error.
 
 ## Design decisions (and why)
 
-- **"Latest forecast available at decision time"** is the core rule. For delivery day D, the buyer decides on D-1 at a cutoff hour; for each half-hour we use the forecast with the latest `publishTime` at or before that cutoff. Accuracy is measured on exactly this forecast, not on the freshest forecast, which would flatter the numbers because the buyer could never have used it.
-- **Window:** "decisions made in January 2026" means delivery days **2 Jan to 1 Feb 2026**. Forecasts published 1-31 Jan are fetched, restricted to horizons of up to 48 h.
+- **"Latest forecast available at decision time"** is the core rule. For delivery day D, the buyer decides on D-1 at a cutoff hour; for each hour we use the forecast with the latest `publishTime` at or before that cutoff. Accuracy is measured on exactly this forecast, not on the freshest forecast, which would flatter the numbers because the buyer could never have used it.
+- **Window:** "decisions made in January 2026" means delivery days **2 Jan to 1 Feb 2026**. Forecasts published 1-31 Jan are fetched, restricted to horizons of up to 24 h.
 - **Decision time is an assumption:** default **09:00 UTC on D-1**, selectable 06:00-12:00 in the UI. I chose a time before the usual day-ahead auction gate closures; the real trading desk's cutoff should replace it. GB is on GMT in January, so UTC equals local time and there is no daylight-saving handling.
 - **Error definition:** error = actual − forecast, so negative means wind under-delivered (the costly case for a buyer). Metrics: MAE, RMSE, bias, MAE as % of mean actual (used instead of MAPE, which breaks near zero wind). The P5/P95 error percentiles drive the shaded band on the chart, so the quantified error feeds directly into the decision.
 - **Snapshot data instead of live API calls:** January 2026 is fixed history. A CSV snapshot makes the app fast, free of an external dependency, and easy to deploy (no database, no secrets).
